@@ -33,14 +33,14 @@ TFT_eSPI tft = TFT_eSPI();
 String weatherTemp = "";
 String weatherDesc = "";
 
-// Store up to 4 upcoming trains
+// Store up to 6 upcoming trains
 struct BartTrain {
   String time;
   String destination;
   String color;
   int minutes;  // for sorting
 };
-BartTrain trains[4];
+BartTrain trains[6];
 BartTrain tempTrains[20];  // Temporary storage for sorting
 
 unsigned long lastAPICall = 0;
@@ -103,7 +103,7 @@ void loop() {
   else if (currentMillis - lastDisplayUpdate >= displayInterval) {
     Serial.println("Updating display (subtracting 1 minute from times)...");
     // Subtract 1 minute from all train times
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 6; i++) {
       if (trains[i].minutes > 0) {
         trains[i].minutes--;
         trains[i].time = (trains[i].minutes == 0) ? "Now" : String(trains[i].minutes) + "m";
@@ -186,7 +186,7 @@ void fetchBART() {
       Serial.println("BART response:");
       Serial.println(payload);
 
-      // Parse JSON to get next 4 trains from Rockridge
+      // Parse JSON to get next 6 trains from Rockridge
       JsonDocument doc;
       DeserializationError error = deserializeJson(doc, payload);
 
@@ -194,7 +194,7 @@ void fetchBART() {
         JsonArray etds = doc["root"]["station"][0]["etd"];
 
         // Clear previous trains
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 6; i++) {
           trains[i].time = "";
           trains[i].destination = "";
           trains[i].color = "";
@@ -258,9 +258,9 @@ void fetchBART() {
           }
         }
 
-        // Copy first 4 to display array
-        Serial.println("\nNext 4 trains:");
-        for (int i = 0; i < 4 && i < trainCount; i++) {
+        // Copy first 6 to display array
+        Serial.println("\nNext 6 trains:");
+        for (int i = 0; i < 6 && i < trainCount; i++) {
           trains[i] = tempTrains[i];
           Serial.print(i + 1);
           Serial.print(". ");
@@ -302,14 +302,14 @@ void displayData() {
   tft.print(" ");
   tft.println(weatherDesc);
 
-  // BART section - next 4 trains
+  // BART section - next 6 trains
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
   tft.setCursor(5, 25, 2);
   tft.println("Rockridge BART:");
 
-  // Display 4 trains
+  // Display 6 trains - more compact spacing
   int yPos = 45;
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 6; i++) {
     if (trains[i].time != "") {
       // Time in larger font
       tft.setTextColor(TFT_YELLOW, TFT_BLACK);
@@ -333,7 +333,7 @@ void displayData() {
         tft.fillCircle(310, yPos + 6, 5, lineColor);
       }
 
-      yPos += 42;
+      yPos += 30;  // Reduced from 42 to 30 to fit 6 trains
     }
   }
 
